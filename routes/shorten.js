@@ -13,11 +13,13 @@ exports.generate_short = function(req, res) {
   }
   long_url = http_check(input_url)
   console.log(long_url)
+  //make sure that the short string is a unique hash to each site
   new_path = short_string()
   console.log(new_path)
   hostname = req.headers.host
   short_url = hostname + "/" + new_path
   res.render('shorten', { title: short_url });
+  //rather than using dicts, use mongo
   short_to_long[new_path] = long_url
   long_to_short[long_url] = new_path
   console.log(short_to_long)
@@ -28,6 +30,7 @@ exports.short_redirect = function(req,res) {
   input_path = req.originalUrl.substring(1)
   console.log(input_path)
   if (input_path in short_to_long) {
+    //search mongo.
    redirect_url = short_to_long[input_path]
    res.redirect(redirect_url)
   } else {
