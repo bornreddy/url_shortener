@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var db = require('../db');
 
 short_to_long = []
 long_to_short = []
@@ -20,24 +21,27 @@ exports.generate_short = function(req, res) {
   short_url = hostname + "/" + new_path
   res.render('shorten', { title: short_url });
   //rather than using dicts, use mongo
-  short_to_long[new_path] = long_url
-  long_to_short[long_url] = new_path
-  console.log(short_to_long)
-  console.log(long_to_short)
+  console.log("before db save")
+  db.save_url(long_url, new_path)
+  console.log("after db save")
 };
 
 exports.short_redirect = function(req,res) {
   input_path = req.originalUrl.substring(1)
   console.log(input_path)
-  if (input_path in short_to_long) {
-    //search mongo.
-   redirect_url = short_to_long[input_path]
-   res.redirect(redirect_url)
-  } else {
-    console.log("short url is not valid")
-    res.render('error', {message:'not a valid shortened url', error: {}} )
-    res.end()
-  }
+  console.log("before find url")
+  db.find_url(input_path, function(res2) {
+    console.log("after find url")
+    if (res2 == null) {
+      console.log("short url is not valid")
+      res.render('error', {message:'not a valid shortened url', error: {}} )
+      res.end()
+    } else {
+    console.log(res2.long_url);
+    res.redirect(res2.long_url);
+    }
+  });
+  
 }
 
 function http_check(url) {
